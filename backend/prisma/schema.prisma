@@ -1,0 +1,190 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum BookingStatus {
+  PENDING
+  ASSIGNED
+  MECHANIC_ON_THE_WAY
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MechanicStatus {
+  AVAILABLE
+  ASSIGNED
+  ON_THE_WAY
+  WORKING
+  OFFLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum UserRole {
+  ADMIN
+  OPERATIONS
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(OPERATIONS)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  phone     String
+  address   String?
+  city      String?
+
+  vehicles  Vehicle[]
+  bookings  Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([phone])
+}
+
+model Vehicle {
+  id           String  @id @default(cuid())
+  customerId   String
+  make         String
+  model        String
+  year         Int?
+  plateNumber  String?
+  fuelType     String?
+
+  customer Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+}
+
+model Mechanic {
+  id             String         @id @default(cuid())
+  name           String
+  phone          String         @unique
+  email          String?        @unique
+  status         MechanicStatus @default(AVAILABLE)
+  specialization String?
+  rating         Float          @default(0)
+  jobsCompleted  Int            @default(0)
+
+  currentLat     Float?
+  currentLng     Float?
+  lastActiveAt   DateTime?
+
+  bookings       Booking[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status])
+}
+
+model ServiceCategory {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  services  Service[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Service {
+  id          String  @id @default(cuid())
+  categoryId  String
+  name        String
+  description String?
+  basePrice   Decimal @db.Decimal(10, 2)
+
+  category ServiceCategory @relation(fields: [categoryId], references: [id])
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  bookingCode String        @unique
+
+  customerId  String
+  vehicleId   String
+  serviceId   String
+  mechanicId  String?
+
+  status      BookingStatus @default(PENDING)
+  amount      Decimal       @db.Decimal(10, 2)
+  paymentStatus PaymentStatus @default(PENDING)
+
+  scheduledAt DateTime
+  completedAt DateTime?
+  cancelledAt DateTime?
+  cancelReason String?
+
+  pickupAddress String?
+  latitude      Float?
+  longitude     Float?
+
+  customer Customer  @relation(fields: [customerId], references: [id])
+  vehicle  Vehicle   @relation(fields: [vehicleId], references: [id])
+  service  Service   @relation(fields: [serviceId], references: [id])
+  mechanic Mechanic? @relation(fields: [mechanicId], references: [id])
+
+  statusHistory BookingStatusHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([customerId])
+  @@index([mechanicId])
+  @@index([serviceId])
+}
+
+model BookingStatusHistory {
+  id        String        @id @default(cuid())
+  bookingId String
+  fromStatus BookingStatus?
+  toStatus   BookingStatus
+  note       String?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([createdAt])
+}
