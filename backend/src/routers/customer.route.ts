@@ -3,7 +3,7 @@ import {
     registerCustomer,
     loginCustomer,
     logoutCustomer,
-} from "../controllers/customerAuth.controllers.ts";
+} from "../controller/customerAuth.controller";
 
 const router = Router();
 

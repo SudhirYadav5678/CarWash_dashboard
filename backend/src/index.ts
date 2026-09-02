@@ -6,6 +6,9 @@ import { prisma } from "./db/prisma.js";
 import userAuthRoutes from "./routers/userAuth.route";
 import customerAuthRoutes from "./routers/customer.route";
 import dashboardRoutes from "./routers/dashboard.rotue";
+import bookingRoutes from "./routers/booking.route";
+import mechanicRoutes from "./routers/mechanic.route";
+
 
 const app = express();
 
@@ -35,7 +38,9 @@ app.get("/api/health", async (_req, res) => {
 app.use("/api/auth", userAuthRoutes);
 app.use("/api/customer", customerAuthRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/mechanics", mechanicRoutes);
 
-app.listen(3000, () => {
-    console.log("Server is running on port 3000");
+app.listen(process.env.PORT || 8000, () => {
+    console.log("Server is running on port " + (process.env.PORT || 8000));
 });

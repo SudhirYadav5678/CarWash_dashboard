@@ -1,0 +1,2 @@
+--- Figma Created with the help of the Codex.
+--- Drizzle orm used with the postgres database.

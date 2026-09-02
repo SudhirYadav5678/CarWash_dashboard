@@ -3,7 +3,7 @@ import {
     loginUser,
     logoutUser,
     registerUser,
-} from "../controller/auth.controllers.ts";
+} from "../controller/auth.controller";
 
 const router = Router();
 
